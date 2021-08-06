@@ -1,55 +1,140 @@
 <template>
-  <div class="container mt-5">
-    <div class="row">
-      <div class="col form-inline">
-        <b-form-input
-          id="input-1"
-          v-model="newTask"
-          required
-          placeholder="Enter Task"
-          @keyup.enter="addCard"
-        ></b-form-input>
-        <b-button @click="addCard" variant="primary" class="ml-3">Add</b-button>
-      </div>
-      <div class="col form-inline">
-        <b-form-input
-          id="input-2"
-          v-model="newColumn"
-          required
-          placeholder="Enter Column"
-          @keyup.enter="addColumn"
-        ></b-form-input>
-        <b-button @click="addColumn" variant="primary" class="ml-3"
-          >Create Column</b-button
-        >
-      </div>
-    </div>
-
-    <div class="row mt-5">
-      <div
-        class="col-3"
-        v-for="[index, column] of Object.entries(columns)"
-        :key="column.id"
-      >
-        <div class="p-2 alert alert-secondary">
-          <button class="float-right" @click="deleteColumn(index)">❌</button>
-          <h3>{{ column.title }}</h3>
-
-          <draggable
-            class="list-group kanban-column"
-            :list="column.cards"
-            :component-data="getComponentData()"
-            group="tasks"
+  <div>
+    <base-modal
+      v-if="isShowModal"
+      @close="toggleModal"
+      scrollable
+      title="Modal Title"
+    >
+      <p class="text-sm leading-5 text-gray-500">
+        Lorem Ipsum is simply dummy text of the printing and typesetting
+        industry. Lorem Ipsum has been the industry's standard dummy text ever
+        since the 1500s, when an unknown printer took a galley of type and
+        scrambled it to make a type specimen book. It has survived not only five
+        centuries, but also the leap into electronic typesetting, remaining
+        essentially unchanged. It was popularised in the 1960s with the release
+        of Letraset sheets containing Lorem Ipsum passages, and more recently
+        with desktop publishing software like Aldus PageMaker including versions
+        of Lorem Ipsum. Lorem Ipsum is simply dummy text of the printing and
+        typesetting industry. Lorem Ipsum has been the industry's standard dummy
+        text ever since the 1500s, when an unknown printer took a galley of type
+        and scrambled it to make a type specimen book. It has survived not only
+        five centuries, but also the leap into electronic typesetting, remaining
+        essentially unchanged. It was popularised in the 1960s with the release
+        of Letraset sheets containing Lorem Ipsum passages, and more recently
+        with desktop publishing software like Aldus PageMaker including versions
+        of Lorem Ipsum. Lorem Ipsum is simply dummy text of the printing and
+        typesetting industry. Lorem Ipsum has been the industry's standard dummy
+        text ever since the 1500s, when an unknown printer took a galley of type
+        and scrambled it to make a type specimen book. It has survived not only
+        five centuries, but also the leap into electronic typesetting, remaining
+        essentially unchanged. It was popularised in the 1960s with the release
+        of Letraset sheets containing Lorem Ipsum passages, and more recently
+        with desktop publishing software like Aldus PageMaker including versions
+        of Lorem Ipsum. Lorem Ipsum is simply dummy text of the printing and
+        typesetting industry. Lorem Ipsum has been the industry's standard dummy
+        text ever since the 1500s, when an unknown printer took a galley of type
+        and scrambled it to make a type specimen book. It has survived not only
+        five centuries, but also the leap into electronic typesetting, remaining
+        essentially unchanged. It was popularised in the 1960s with the release
+        of Letraset sheets containing Lorem Ipsum passages, and more recently
+        with desktop publishing software like Aldus PageMaker including versions
+        of Lorem Ipsum.
+      </p>
+      <template v-slot:footer>
+        <span class="flex w-full rounded-md shadow-sm sm:ml-3 sm:w-auto">
+          <button
+            type="button"
+            class="
+              inline-flex
+              justify-center
+              w-full
+              rounded-md
+              border border-transparent
+              px-4
+              py-2
+              bg-red-600
+              text-base
+              leading-6
+              font-medium
+              text-white
+              shadow-sm
+              hover:bg-red-500
+              focus:outline-none
+              focus:border-red-700
+              focus:shadow-outline-red
+              transition
+              ease-in-out
+              duration-150
+              sm:text-sm
+              sm:leading-5
+            "
           >
-            <div
-              class="list-group-item"
-              v-for="element in column.cards"
-              @click="show(element)"
-              :key="element.title"
+            Deactivate
+          </button>
+        </span>
+      </template>
+    </base-modal>
+
+    <div class="container mt-5">
+      <div class="row">
+        <div class="col form-inline">
+          <b-form-input
+            id="input-1"
+            v-model="newTask"
+            required
+            placeholder="Enter Task"
+            @keyup.enter="addCard"
+          ></b-form-input>
+          <b-button @click="addCard" variant="primary" class="ml-3"
+            >Add</b-button
+          >
+        </div>
+        <div class="col form-inline">
+          <b-form-input
+            id="input-2"
+            v-model="newColumn"
+            required
+            placeholder="Enter Column"
+            @keyup.enter="addColumn"
+          ></b-form-input>
+          <b-button @click="addColumn" variant="primary" class="ml-3"
+            >Create Column</b-button
+          >
+        </div>
+        <div class="col-2 form-inline">
+          <b-button @click="downloadQuery" variant="primary" class="ml-3"
+            >DownLoad Database Query</b-button
+          >
+        </div>
+      </div>
+
+      <div class="row mt-5">
+        <div
+          class="col"
+          v-for="[index, column] of Object.entries(columns)"
+          :key="column.id"
+        >
+          <div class="p-2 alert alert-secondary">
+            <button class="float-right" @click="deleteColumn(index)">❌</button>
+            <h3>{{ column.title }}</h3>
+
+            <draggable
+              class="list-group kanban-column"
+              :list="column.cards"
+              @end="dragEnd"
+              group="tasks"
             >
-              {{ element.title }}
-            </div>
-          </draggable>
+              <div
+                class="list-group-item"
+                v-for="element in column.cards"
+                @click="toggleModal"
+                :key="element.title"
+              >
+                {{ element.title }}
+              </div>
+            </draggable>
+          </div>
         </div>
       </div>
     </div>
@@ -59,7 +144,8 @@
 <script>
 //import draggable
 import draggable from "vuedraggable";
-import Modal from "./components/Modal.vue";
+import BaseModal from "./components/Modal";
+
 // Import axios
 import axios from "axios";
 
@@ -69,10 +155,11 @@ export default {
   name: "bemo-board",
   components: {
     draggable,
+    BaseModal,
   },
   data() {
     return {
-      // for new tasks
+      isShowModal: false,
       newTask: "",
       newColumn: "",
       columns: [],
@@ -123,37 +210,27 @@ export default {
         this.newColumn = "";
       }
     },
-    show: function (card) {
-      this.$modal.show(Modal, { title: card.title });
+    dragEnd: function () {
+      axios
+        .put("update/all_data", { columns: this.columns })
+        .then((response) => console.log(response.data.data));
     },
-
-
-
-
-
-    handleChange() {
-            console.log(JSON.stringify(this.columns));
+    downloadQuery: function () {
+      axios
+        .get("download/query")
+        .then((response) => this.downloadAsFile(response.data));
     },
-    inputChanged(value) {
-      this.activeNames = value;
+    downloadAsFile: function (data) {
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "query.sql");
+      document.body.appendChild(link);
+      link.click();
     },
-    getComponentData() {
-      return {
-        on: {
-          change: this.handleChange,
-          input: this.inputChanged
-        },
-        attrs:{
-          wrap: true
-        },
-        props: {}
-      }}
-
-
-
-
-
-
+    toggleModal() {
+      this.isShowModal = !this.isShowModal;
+    },
   },
   mounted: function () {
     this.getBoardData();
