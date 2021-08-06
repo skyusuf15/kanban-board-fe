@@ -1,49 +1,17 @@
 <template>
   <div>
-    <base-modal
-      v-if="isShowModal"
-      @close="toggleModal"
-      scrollable
-      title="Modal Title"
-    >
-      <p class="text-sm leading-5 text-gray-500">
 
-      </p>
-      <template v-slot:footer>
-        <span class="flex w-full rounded-md shadow-sm sm:ml-3 sm:w-auto">
-          <button
-            type="button"
-            class="
-              inline-flex
-              justify-center
-              w-full
-              rounded-md
-              border border-transparent
-              px-4
-              py-2
-              bg-red-600
-              text-base
-              leading-6
-              font-medium
-              text-white
-              shadow-sm
-              hover:bg-red-500
-              focus:outline-none
-              focus:border-red-700
-              focus:shadow-outline-red
-              transition
-              ease-in-out
-              duration-150
-              sm:text-sm
-              sm:leading-5
-            "
-          >
-            Deactivate
-          </button>
-        </span>
-      </template>
-    </base-modal>
+    <!-- overlay -->
+    <div class="overlay" v-if="showModal" @click="toggleModal()"></div>
 
+    <!-- modal -->
+    <div class="modal" v-if="showModal">
+      <button class="close" @click="toggleModal()">x</button>
+      <h3>Title</h3>
+      <p>Description</p>
+
+    </div>
+  
     <div class="container mt-5">
       <div class="row">
         <div class="col form-inline">
@@ -96,7 +64,7 @@
               <div
                 class="list-group-item"
                 v-for="element in column.cards"
-                @click="toggleModal"
+                @click="toggleModal()"
                 :key="element.title"
               >
                 {{ element.title }}
@@ -112,7 +80,6 @@
 <script>
 //import draggable
 import draggable from "vuedraggable";
-import BaseModal from "./components/Modal";
 
 // Import axios
 import axios from "axios";
@@ -123,11 +90,10 @@ export default {
   name: "bemo-board",
   components: {
     draggable,
-    BaseModal,
   },
   data() {
     return {
-      isShowModal: false,
+      showModal: false,
       newTask: "",
       newColumn: "",
       columns: [],
@@ -197,7 +163,7 @@ export default {
       link.click();
     },
     toggleModal() {
-      this.isShowModal = !this.isShowModal;
+      this.showModal = !this.showModal;
     },
   },
   mounted: function () {
@@ -211,4 +177,30 @@ export default {
 .kanban-column {
   min-height: 300px;
 }
+
+.modal-vue .overlay {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-vue .modal {
+  position: relative;
+  width: 300px;
+  z-index: 9999;
+  margin: 0 auto;
+  padding: 20px 30px;
+  background-color: #fff;
+}
+
+.modal-vue .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
 </style>
