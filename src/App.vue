@@ -1,28 +1,169 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col form-inline">
+        <b-form-input
+          id="input-1"
+          v-model="newTask"
+          required
+          placeholder="Enter Task"
+          @keyup.enter="addCard"
+        ></b-form-input>
+        <b-button @click="addCard" variant="primary" class="ml-3">Add</b-button>
+      </div>
+      <div class="col form-inline">
+        <b-form-input
+          id="input-2"
+          v-model="newColumn"
+          required
+          placeholder="Enter Column"
+          @keyup.enter="addColumn"
+        ></b-form-input>
+        <b-button @click="addColumn" variant="primary" class="ml-3"
+          >Create Column</b-button
+        >
+      </div>
+    </div>
+
+    <div class="row mt-5">
+      <div
+        class="col-3"
+        v-for="[index, column] of Object.entries(columns)"
+        :key="column.id"
+      >
+        <div class="p-2 alert alert-secondary">
+          <button class="float-right" @click="deleteColumn(index)">❌</button>
+          <h3>{{ column.title }}</h3>
+
+          <draggable
+            class="list-group kanban-column"
+            :list="column.cards"
+            :component-data="getComponentData()"
+            group="tasks"
+          >
+            <div
+              class="list-group-item"
+              v-for="element in column.cards"
+              @click="show(element)"
+              :key="element.title"
+            >
+              {{ element.title }}
+            </div>
+          </draggable>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+//import draggable
+import draggable from "vuedraggable";
+import Modal from "./components/Modal.vue";
+// Import axios
+import axios from "axios";
+
+axios.defaults.baseURL = "http://127.0.0.1:8000/api/";
 
 export default {
-  name: 'App',
+  name: "bemo-board",
   components: {
-    HelloWorld
-  }
-}
+    draggable,
+  },
+  data() {
+    return {
+      // for new tasks
+      newTask: "",
+      newColumn: "",
+      columns: [],
+    };
+  },
+  methods: {
+    getBoardData: function () {
+      axios
+        .get("column")
+        .then((response) => (this.columns = response.data.data));
+    },
+    addCard: function () {
+      if (this.newTask) {
+        const cardData = {
+          title: this.newTask,
+          description: "",
+          column_id: this.columns[0].id,
+        };
+
+        axios
+          .post("card", cardData)
+          .then((response) => this.columns[0].cards.push(response.data.data));
+
+        this.newTask = "";
+      }
+    },
+    deleteColumn: function (columnIndex) {
+      axios
+        .delete(`column/${this.columns[columnIndex].id}`)
+        .then((response) => {
+          if (response.data.data) {
+            this.columns.splice(columnIndex, 1);
+            this.$forceUpdate();
+          }
+        });
+    },
+    addColumn: function () {
+      if (this.newColumn) {
+        const data = {
+          title: this.newColumn,
+          slug: this.newColumn.toLowerCase().split(" ").join("_"),
+          cards: [],
+        };
+        axios
+          .post("column", data)
+          .then((response) => this.columns.push(response.data.data));
+
+        this.newColumn = "";
+      }
+    },
+    show: function (card) {
+      this.$modal.show(Modal, { title: card.title });
+    },
+
+
+
+
+
+    handleChange() {
+            console.log(JSON.stringify(this.columns));
+    },
+    inputChanged(value) {
+      this.activeNames = value;
+    },
+    getComponentData() {
+      return {
+        on: {
+          change: this.handleChange,
+          input: this.inputChanged
+        },
+        attrs:{
+          wrap: true
+        },
+        props: {}
+      }}
+
+
+
+
+
+
+  },
+  mounted: function () {
+    this.getBoardData();
+  },
+};
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+/* light stylings for the kanban columns */
+.kanban-column {
+  min-height: 300px;
 }
 </style>
