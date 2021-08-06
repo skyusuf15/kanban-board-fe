@@ -12,7 +12,6 @@
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
-    "vue-js-modal": "^2.0.1",
     "vuedraggable": "^2.24.3"
   },
   "devDependencies": {
