@@ -1,18 +1,14 @@
 <template>
-  <div>
-
-    <!-- overlay -->
-    <div class="overlay" v-if="showModal" @click="toggleModal()"></div>
-
-    <!-- modal -->
-    <div class="modal" v-if="showModal">
-      <button class="close" @click="toggleModal()">x</button>
-      <h3>Title</h3>
-      <p>Description</p>
-
-    </div>
   
     <div class="container mt-5">
+      <Modal v-show="isModalVisible" @close="closeModal">
+        <template v-slot:header> This is a new modal header. </template>
+
+        <template v-slot:body> This is a new modal body. </template>
+
+        <template v-slot:footer> This is a new modal footer. </template>
+      </Modal>
+
       <div class="row">
         <div class="col form-inline">
           <b-form-input
@@ -64,7 +60,7 @@
               <div
                 class="list-group-item"
                 v-for="element in column.cards"
-                @click="toggleModal()"
+                @click="showModal"
                 :key="element.title"
               >
                 {{ element.title }}
@@ -74,7 +70,7 @@
         </div>
       </div>
     </div>
-  </div>
+  
 </template>
 
 <script>
@@ -84,16 +80,19 @@ import draggable from "vuedraggable";
 // Import axios
 import axios from "axios";
 
+import Modal from "./components/Modal.vue";
+
 axios.defaults.baseURL = "https://bemo-test-be.herokuapp.com/api/";
 
 export default {
   name: "bemo-board",
   components: {
     draggable,
+    Modal,
   },
   data() {
     return {
-      showModal: false,
+      isModalVisible: false,
       newTask: "",
       newColumn: "",
       columns: [],
@@ -162,8 +161,11 @@ export default {
       document.body.appendChild(link);
       link.click();
     },
-    toggleModal() {
-      this.showModal = !this.showModal;
+    showModal: function () {
+      this.isModalVisible = true;
+    },
+    closeModal: function () {
+      this.isModalVisible = false;
     },
   },
   mounted: function () {
@@ -202,5 +204,4 @@ export default {
   top: 10px;
   right: 10px;
 }
-
 </style>
